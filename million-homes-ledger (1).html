@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Million Homes — Commission Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F2E8;
+    --paper-raised:#FDFBF6;
+    --ink:#1E2A22;
+    --ink-soft:#5B6459;
+    --hair:#DAD2BE;
+    --teal:#2C5A4C;
+    --teal-deep:#183B31;
+    --gold:#A9782F;
+    --gold-soft:#EFE1C4;
+    --rose:#9C3B33;
+    --rose-soft:#F3DCD8;
+    --green-soft:#DCE7D3;
+    --font-display:'Fraunces', serif;
+    --font-mono:'IBM Plex Mono', monospace;
+    --font-sans:'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .mh-app{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-sans);
+    border-radius:16px;
+    max-width:1240px;
+    margin:0 auto;
+    overflow:hidden;
+  }
+
+  /* ---------- login ---------- */
+  .mh-gate{
+    max-width:420px;
+    margin:40px auto;
+    padding:32px 30px;
+    background:var(--paper-raised);
+    border:1px solid var(--hair);
+    border-radius:14px;
+  }
+  .mh-gate-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);margin:0 0 6px;}
+  .mh-gate h1{font-family:var(--font-display);font-size:26px;font-weight:600;margin:0 0 4px;}
+  .mh-gate p.sub{font-size:12.5px;color:var(--ink-soft);margin:0 0 22px;}
+  .mh-gate .mh-field{margin-bottom:14px;}
+  .mh-gate-error{color:var(--rose);font-size:12.5px;margin:8px 0 0;display:none;}
+  .mh-gate-note{font-size:11px;color:var(--ink-soft);margin-top:16px;line-height:1.5;}
+  .mh-gate-switch{font-size:12px;color:var(--teal);cursor:pointer;text-decoration:underline;margin-top:10px;display:inline-block;}
+  .mh-gate-userlist{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair);}
+  .mh-gate-userlist-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin:0 0 8px;}
+  .mh-gate-user-chip{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;
+    background:var(--gold-soft);color:#6B4F1F;padding:5px 6px 5px 10px;border-radius:20px;margin:0 6px 6px 0;
+  }
+  .mh-gate-user-chip button{
+    border:none;background:rgba(0,0,0,0.08);color:#6B4F1F;border-radius:50%;
+    width:16px;height:16px;font-size:12px;line-height:1;cursor:pointer;padding:0;
+  }
+  .mh-gate-user-chip button:hover{background:var(--rose);color:#fff;}
+
+  /* ---------- shell ---------- */
+  .mh-shell{display:flex;align-items:stretch;min-height:640px;}
+  .mh-sidebar{
+    width:196px;
+    flex-shrink:0;
+    background:var(--teal-deep);
+    color:#EFEAE0;
+    padding:22px 16px;
+    display:flex;
+    flex-direction:column;
+  }
+  .mh-brand{font-family:var(--font-display);font-size:19px;font-weight:600;color:#fff;margin:0 0 2px;}
+  .mh-brand-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#9FB8AC;margin:0 0 26px;}
+  .mh-nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:8px;
+    font-size:13.5px;font-weight:500;
+    color:#CFE0D6;cursor:pointer;margin-bottom:4px;
+  }
+  .mh-nav-item:hover{background:rgba(255,255,255,0.06);}
+  .mh-nav-item.active{background:rgba(255,255,255,0.12);color:#fff;}
+  .mh-nav-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+  .mh-sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12);}
+  .mh-user-name{font-size:12.5px;color:#fff;margin:0 0 8px;}
+  .mh-lock-btn{
+    font-family:var(--font-sans);font-size:12px;color:#CFE0D6;
+    background:transparent;border:1px solid rgba(255,255,255,0.2);
+    padding:7px 10px;border-radius:6px;cursor:pointer;width:100%;
+  }
+  .mh-lock-btn:hover{border-color:#fff;color:#fff;}
+
+  .mh-main{flex:1;padding:26px 28px 50px;min-width:0;}
+  .mh-view{display:none;}
+  .mh-view.active{display:block;}
+
+  .mh-page-title{font-family:var(--font-display);font-size:24px;font-weight:600;margin:0 0 20px;}
+
+  .mh-summary{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+    background:var(--hair);border:1px solid var(--hair);border-radius:10px;overflow:hidden;margin-bottom:26px;
+  }
+  .mh-stat{background:var(--paper-raised);padding:14px 16px;}
+  .mh-stat-label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin:0 0 6px;}
+  .mh-stat-value{font-family:var(--font-mono);font-size:18px;font-weight:500;margin:0;}
+  .mh-stat-value.gold{color:var(--gold);}
+  .mh-stat-value.teal{color:var(--teal-deep);}
+  .mh-stat-value.rose{color:var(--rose);}
+
+  .mh-section-title{font-family:var(--font-display);font-size:19px;font-weight:600;margin:0 0 14px;display:flex;align-items:center;gap:10px;}
+  .mh-section-title::after{content:'';flex:1;height:1px;background:var(--hair);}
+
+  .mh-card{background:var(--paper-raised);border:1px solid var(--hair);border-radius:12px;padding:20px 22px;margin-bottom:26px;}
+
+  .mh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 16px;}
+  .mh-grid .span2{grid-column:span 2;}
+  .mh-field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:5px;}
+  .mh-field input, .mh-field select{
+    width:100%;padding:8px 10px;border:1px solid var(--hair);border-radius:6px;
+    background:#fff;font-family:var(--font-sans);font-size:13px;color:var(--ink);
+  }
+  .mh-field input:focus, .mh-field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px rgba(44,90,76,0.15);}
+
+  .mh-agents-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px;}
+  .mh-agent-box{border:1px dashed var(--hair);border-radius:8px;padding:10px;}
+  .mh-agent-box .mh-agent-label{font-family:var(--font-mono);font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
+  .mh-agent-fields{display:grid;grid-template-columns:2fr 1fr;gap:8px;}
+
+  .mh-preview{margin-top:18px;padding:16px 18px;background:var(--gold-soft);border-radius:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px 18px;}
+  .mh-preview .p-item p{margin:0;}
+  .mh-preview .p-label{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#6B4F1F;}
+  .mh-preview .p-value{font-family:var(--font-mono);font-size:15px;font-weight:500;color:#4A3312;}
+
+  .mh-btn{
+    font-family:var(--font-sans);font-weight:600;font-size:13px;padding:10px 20px;border-radius:7px;
+    border:1px solid var(--teal-deep);background:var(--teal-deep);color:#fff;cursor:pointer;margin-top:16px;
+  }
+  .mh-btn:hover{background:var(--teal);}
+  .mh-btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--hair);font-weight:500;}
+  .mh-btn.ghost:hover{border-color:var(--ink-soft);color:var(--ink);}
+  .mh-btn.small{padding:6px 12px;font-size:12px;margin-top:0;}
+  .mh-btn.danger{border-color:var(--rose);color:var(--rose);background:transparent;}
+  .mh-btn.danger:hover{background:var(--rose-soft);}
+  .mh-btn.full{width:100%;}
+  .mh-button-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .mh-button-row .mh-btn{margin-top:0;}
+  .mh-download-note{font-size:11px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0;}
+
+  .mh-filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+  .mh-filters input, .mh-filters select{padding:7px 10px;border:1px solid var(--hair);border-radius:6px;font-family:var(--font-sans);font-size:12px;background:#fff;}
+
+  table.mh-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .mh-table thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);border-bottom:1.5px solid var(--ink);padding:8px 8px;font-weight:600;}
+  .mh-table tbody tr.mh-row{border-bottom:1px solid var(--hair);cursor:pointer;}
+  .mh-table tbody tr.mh-row:hover{background:rgba(44,90,76,0.05);}
+  .mh-table td{padding:9px 8px;font-family:var(--font-mono);vertical-align:middle;}
+  .mh-table td.name-cell{font-family:var(--font-sans);}
+  .mh-table td.name-cell .proj{font-weight:600;display:block;}
+  .mh-table td.name-cell .sub{color:var(--ink-soft);font-size:11px;}
+
+  .mh-seal{display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:0.04em;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap;}
+  .seal-closed{background:var(--green-soft);color:#2C5A2C;}
+  .seal-pending{background:var(--rose-soft);color:var(--rose);}
+  .seal-partial{background:var(--gold-soft);color:#6B4F1F;}
+  .seal-future{background:#E2E8EF;color:#3B5170;}
+  .seal-cancelled{background:#E9E5DC;color:var(--ink-soft);text-decoration:line-through;}
+
+  .mh-detail-row td{background:#FBF8F1;padding:16px 18px;}
+  .mh-detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 16px;}
+  .mh-detail-grid .mh-field{font-family:var(--font-sans);}
+
+  .mh-breakdown{
+    font-family:var(--font-mono);font-size:12px;background:#fff;border:1px solid var(--hair);border-radius:8px;
+    padding:12px 14px;margin-bottom:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px 20px;
+  }
+  .mh-breakdown div{display:flex;justify-content:space-between;}
+  .mh-breakdown div span:first-child{color:var(--ink-soft);}
+
+  .mh-empty{text-align:center;padding:40px 20px;color:var(--ink-soft);font-family:var(--font-sans);font-size:13px;}
+  .mh-note{font-size:11px;color:var(--ink-soft);margin-top:10px;font-family:var(--font-sans);}
+
+  .mh-report-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .mh-report-tab{
+    font-family:var(--font-sans);font-size:12.5px;font-weight:500;padding:8px 14px;border-radius:20px;
+    border:1px solid var(--hair);background:var(--paper-raised);color:var(--ink-soft);cursor:pointer;
+  }
+  .mh-report-tab.active{background:var(--teal-deep);border-color:var(--teal-deep);color:#fff;}
+  .mh-report-panel{display:none;}
+  .mh-report-panel.active{display:block;}
+  .mh-table-scroll{overflow-x:auto;padding-bottom:4px;}
+  .mh-monthly-table{min-width:1040px;}
+  .mh-type-count{font-family:var(--font-mono);font-weight:600;color:var(--teal-deep);text-align:center;}
+  .mh-month-total td{background:var(--gold-soft);font-weight:600;border-top:2px solid var(--gold);}
+  .mh-month-cell{font-family:var(--font-display)!important;font-size:15px;vertical-align:top!important;color:var(--teal-deep);}
+  .mh-project-type-cell{font-family:var(--font-sans)!important;font-weight:600;}
+
+  .days-tag{font-family:var(--font-sans);font-size:11px;padding:2px 7px;border-radius:10px;background:var(--rose-soft);color:var(--rose);}
+
+  @media (max-width:900px){
+    .mh-shell{flex-direction:column;}
+    .mh-sidebar{width:100%;flex-direction:row;overflow-x:auto;}
+    .mh-brand,.mh-brand-sub,.mh-sidebar-footer{display:none;}
+    .mh-summary{grid-template-columns:repeat(2,1fr);}
+    .mh-grid{grid-template-columns:repeat(2,1fr);}
+    .mh-agents-row{grid-template-columns:1fr;}
+    .mh-detail-grid{grid-template-columns:repeat(2,1fr);}
+    .mh-preview{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+<div class="mh-app">
+
+  <div id="gate" class="mh-gate">
+    <p class="mh-gate-eyebrow" id="gate-eyebrow">Sign in</p>
+    <h1 id="gate-title">Million Homes Ledger</h1>
+    <p class="sub" id="gate-sub">Enter your name and passcode to open the ledger.</p>
+    <div class="mh-field"><label>Name</label><input type="text" id="gate-name" placeholder="Your name"></div>
+    <div class="mh-field"><label>Passcode</label><input type="password" id="gate-pass" placeholder="Passcode"></div>
+    <div class="mh-field" id="gate-confirm-wrap" style="display:none;"><label>Confirm passcode</label><input type="password" id="gate-pass2" placeholder="Re-enter passcode"></div>
+    <button class="mh-btn full" id="gate-btn">Sign in</button>
+    <button class="mh-btn ghost full js-download-app" type="button">Download standalone app</button>
+    <p class="mh-download-note">Save the ledger as an HTML file, then open it in your browser whenever you need it.</p>
+    <p class="mh-gate-error" id="gate-error"></p>
+    <span class="mh-gate-switch" id="gate-switch" style="display:none;">+ Add a teammate login</span>
+    <div id="gate-userlist" class="mh-gate-userlist" style="display:none;"></div>
+    <p class="mh-gate-note">This is a simple screen lock stored in your browser only — it isn't a secure server login, just a way to keep up to 4 teammates signed in with their own name and passcode.</p>
+  </div>
+
+  <div class="mh-shell" id="shell" style="display:none;">
+    <div class="mh-sidebar">
+      <p class="mh-brand">Million Homes</p>
+      <p class="mh-brand-sub">Commission ledger</p>
+      <div class="mh-nav-item active" data-view="dashboard"><span class="mh-nav-dot"></span>Dashboard</div>
+      <div class="mh-nav-item" data-view="newdeal"><span class="mh-nav-dot"></span>New deal</div>
+      <div class="mh-nav-item" data-view="alldeals"><span class="mh-nav-dot"></span>All deals</div>
+      <div class="mh-nav-item" data-view="reports"><span class="mh-nav-dot"></span>Reports</div>
+      <div class="mh-sidebar-footer">
+        <p class="mh-user-name" id="sidebar-user"></p>
+        <button class="mh-lock-btn" id="btn-lock">Lock ledger</button>
+      </div>
+    </div>
+
+    <div class="mh-main">
+
+      <!-- DASHBOARD -->
+      <div class="mh-view active" id="view-dashboard">
+        <h1 class="mh-page-title">Dashboard</h1>
+        <div class="mh-summary" id="summary"></div>
+        <h2 class="mh-section-title">Recent deals</h2>
+        <table class="mh-table"><thead><tr><th>Date</th><th>Project</th><th>Type</th><th>Total commission</th><th>Status</th></tr></thead><tbody id="recent-body"></tbody></table>
+      </div>
+
+      <!-- NEW DEAL -->
+      <div class="mh-view" id="view-newdeal">
+        <h1 class="mh-page-title">New deal</h1>
+        <div class="mh-card">
+          <div class="mh-grid">
+            <div class="mh-field"><label>Deal closed date</label><input type="date" id="f-date"></div>
+            <div class="mh-field">
+              <label>Project type</label>
+              <select id="f-type"><option>Primary Offplan</option><option>Buy Sell</option><option>RENTAL</option></select>
+            </div>
+            <div class="mh-field span2"><label>Project / client</label><input type="text" id="f-project" placeholder="e.g. Ying Zhang - Muheira Modon"></div>
+            <div class="mh-field"><label>Unit no.</label><input type="text" id="f-unit"></div>
+            <div class="mh-field"><label>Company</label><input type="text" id="f-company" placeholder="MH / SZ"></div>
+            <div class="mh-field"><label>Contract value (AED)</label><input type="number" id="f-contract" placeholder="0.00"></div>
+            <div class="mh-field"><label>Commission %</label><input type="number" id="f-commpct" step="0.001" placeholder="e.g. 5 for 5%"></div>
+            <div class="mh-field"><label>Kickback to agents (AED)</label><input type="number" id="f-kbagent" placeholder="0.00"></div>
+            <div class="mh-field"><label>Kickback to client (AED)</label><input type="number" id="f-kbclient" placeholder="0.00"></div>
+            <div class="mh-field"><label>Mode of payment</label><input type="text" id="f-mode" placeholder="Cash / Cheque / Bank Transfer"></div>
+            <div class="mh-field"><label>Remarks</label><input type="text" id="f-remarks"></div>
+          </div>
+          <div class="mh-agents-row">
+            <div class="mh-agent-box"><div class="mh-agent-label">Agent 1</div><div class="mh-agent-fields"><input type="text" id="f-a1name" placeholder="Name"><input type="number" id="f-a1pct" placeholder="% e.g. 80"></div></div>
+            <div class="mh-agent-box"><div class="mh-agent-label">Agent 2</div><div class="mh-agent-fields"><input type="text" id="f-a2name" placeholder="Name"><input type="number" id="f-a2pct" placeholder="%"></div></div>
+            <div class="mh-agent-box"><div class="mh-agent-label">Agent 3</div><div class="mh-agent-fields"><input type="text" id="f-a3name" placeholder="Name"><input type="number" id="f-a3pct" placeholder="%"></div></div>
+          </div>
+          <div class="mh-preview" id="preview"></div>
+          <p class="mh-note">VAT is fixed at 5% (standard UAE rate), calculated on commission excl. VAT. Kickback amounts are deducted before splitting between agents and company. Agent % applies to the remaining company-and-agents share.</p>
+          <button class="mh-btn" id="btn-add">Add deal to ledger</button>
+        </div>
+      </div>
+
+      <!-- ALL DEALS -->
+      <div class="mh-view" id="view-alldeals">
+        <h1 class="mh-page-title">All deals</h1>
+        <div class="mh-filters">
+          <input type="text" id="filter-search" placeholder="Search project, agent, unit...">
+          <select id="filter-status">
+            <option value="">All statuses</option>
+            <option>Pending Receipt</option><option>Received - Not Paid</option><option>Partially Paid</option>
+            <option>Closed</option><option>Future Payment</option><option>Cancelled</option>
+          </select>
+          <select id="filter-type"><option value="">All types</option><option>Primary Offplan</option><option>Buy Sell</option><option>RENTAL</option></select>
+        </div>
+        <table class="mh-table">
+          <thead><tr><th>Date</th><th>Project</th><th>Type</th><th>Contract value</th><th>Total commission</th><th>Company net</th><th>Agents net</th><th>Status</th><th></th></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div id="empty-state" class="mh-empty" style="display:none;">No deals yet. Add your first deal from the New deal tab.</div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="mh-view" id="view-reports">
+        <h1 class="mh-page-title">Reports</h1>
+        <div class="mh-button-row">
+          <button class="mh-btn ghost" id="btn-export-csv">Download full ledger as CSV</button>
+          <button class="mh-btn ghost js-download-app" type="button">Download standalone app</button>
+        </div>
+        <div class="mh-report-tabs" style="margin-top:20px;">
+          <div class="mh-report-tab active" data-report="monthly">Monthly summary</div>
+          <div class="mh-report-tab" data-report="type">By project type</div>
+          <div class="mh-report-tab" data-report="agent">Agent-wise commission</div>
+          <div class="mh-report-tab" data-report="pending">Outstanding receivables</div>
+        </div>
+
+        <div class="mh-report-panel active" id="report-monthly">
+          <p class="mh-note" style="margin:0 0 12px;">Each month includes totals and a financial breakdown for Primary Offplan, Buy Sell, and Rental.</p>
+          <div class="mh-table-scroll">
+            <table class="mh-table mh-monthly-table"><thead><tr><th>Month</th><th>Project type</th><th>Deals</th><th>Contract value (AED)</th><th>Total commission (AED)</th><th>Company commission (AED)</th><th>Agent commission (AED)</th><th>Received (AED)</th><th>Outstanding (AED)</th></tr></thead><tbody id="monthly-body"></tbody></table>
+          </div>
+        </div>
+        <div class="mh-report-panel" id="report-type">
+          <table class="mh-table"><thead><tr><th>Project type</th><th>Deals</th><th>Contract value</th><th>Total commission</th><th>Company net</th><th>Agents net</th></tr></thead><tbody id="type-body"></tbody></table>
+        </div>
+        <div class="mh-report-panel" id="report-agent">
+          <table class="mh-table"><thead><tr><th>Agent</th><th>Deals</th><th>Total commission earned</th></tr></thead><tbody id="agent-body"></tbody></table>
+        </div>
+        <div class="mh-report-panel" id="report-pending">
+          <table class="mh-table"><thead><tr><th>Date</th><th>Project</th><th>Total commission</th><th>Received</th><th>Outstanding</th><th>Days pending</th><th>Status</th></tr></thead><tbody id="pending-body"></tbody></table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const AUTH_KEY = 'mh_auth_v1';
+const DEALS_KEY = 'mh_deals_2026';
+let deals = [];
+let expandedId = null;
+let auth = null;
+let currentUser = null;
+let storageBroken = false;
+const MAX_USERS = 4;
+const memoryStore = {};
+
+const fmt = n => { n = Number(n) || 0; return n.toLocaleString('en-AE', {minimumFractionDigits:2, maximumFractionDigits:2}); };
+const pctInput = v => (Number(v)||0) / 100;
+
+/* ---------------- STORAGE SHIM (uses host storage, then browser storage, then memory) ---------------- */
+async function storeGet(key){
+  if(window.storage){
+    try{
+      const r = await window.storage.get(key, false);
+      return r ? JSON.parse(r.value) : null;
+    }catch(e){}
+  }
+  try{
+    const value = window.localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  }catch(e){
+    storageBroken = true;
+    return memoryStore[key] !== undefined ? memoryStore[key] : null;
+  }
+}
+async function storeSet(key, value){
+  if(window.storage){
+    try{
+      await window.storage.set(key, JSON.stringify(value), false);
+      return;
+    }catch(e){}
+  }
+  try{
+    window.localStorage.setItem(key, JSON.stringify(value));
+  }catch(e){
+    storageBroken = true;
+    memoryStore[key] = value;
+  }
+}
+async function storeDelete(key){
+  if(window.storage){
+    try{
+      await window.storage.delete(key, false);
+      return;
+    }catch(e){}
+  }
+  try{
+    window.localStorage.removeItem(key);
+  }catch(e){
+    storageBroken = true;
+    delete memoryStore[key];
+  }
+}
+function showStorageWarning(){
+  if(!storageBroken) return;
+  if(document.getElementById('storage-warning')) return;
+  const b = document.createElement('div');
+  b.id = 'storage-warning';
+  b.style = 'background:var(--rose-soft);color:var(--rose);font-family:var(--font-sans);font-size:12px;padding:10px 16px;text-align:center;';
+  b.textContent = "Browser storage isn't available in this view — your login and deals will only last for this session. Use Download standalone app to save a version that runs in your browser.";
+  document.querySelector('.mh-app').prepend(b);
+}
+
+/* ---------------- AUTH (list of up to MAX_USERS named logins) ---------------- */
+async function getUsers(){
+  const v = await storeGet(AUTH_KEY);
+  if(Array.isArray(v)) return v;
+  if(v && v.name && v.pass) return [v]; // migrate old single-login format
+  return [];
+}
+async function saveUsers(list){ await storeSet(AUTH_KEY, list); }
+
+let gateMode = 'signin'; // 'signin' | 'create'
+let userList = [];
+
+function renderUserList(){
+  const wrap = document.getElementById('gate-userlist');
+  if(!wrap) return;
+  if(gateMode !== 'signin' || userList.length===0){
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.style.display = 'block';
+  wrap.innerHTML = `<p class="mh-gate-userlist-label">Logins on this ledger (${userList.length}/${MAX_USERS})</p>` +
+    userList.map(u=>`<span class="mh-gate-user-chip">${u.name}<button type="button" data-remove="${u.name}" title="Remove this login">&times;</button></span>`).join('');
+  wrap.querySelectorAll('[data-remove]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(confirm(`Remove the login for "${btn.dataset.remove}"? They will need to be re-added to sign in again.`)){
+        userList = userList.filter(u=>u.name!==btn.dataset.remove);
+        await saveUsers(userList);
+        renderUserList();
+        renderGateSwitchLabel();
+      }
+    });
+  });
+}
+
+function renderGateSwitchLabel(){
+  const sw = document.getElementById('gate-switch');
+  if(userList.length===0){
+    sw.style.display = 'none';
+    return;
+  }
+  sw.style.display = 'inline-block';
+  if(gateMode === 'signin'){
+    sw.textContent = userList.length < MAX_USERS ? '+ Add a teammate login' : 'Maximum 4 logins reached';
+  } else {
+    sw.textContent = '← Back to sign in';
+  }
+}
+
+async function initGate(mode){
+  userList = await getUsers();
+  const errEl = document.getElementById('gate-error');
+  errEl.style.display = 'none';
+  document.getElementById('gate-pass2').value = '';
+
+  if(userList.length === 0){
+    gateMode = 'create';
+  } else {
+    gateMode = mode === 'create' ? 'create' : 'signin';
+  }
+
+  if(gateMode === 'create'){
+    document.getElementById('gate-eyebrow').textContent = userList.length===0 ? 'Set up' : 'New login';
+    document.getElementById('gate-title').textContent = userList.length===0 ? 'Create the first login' : 'Add a teammate login';
+    document.getElementById('gate-sub').textContent = userList.length===0
+      ? 'First time here — set a name and passcode to lock this ledger.'
+      : 'Give this teammate their own name and passcode.';
+    document.getElementById('gate-confirm-wrap').style.display = 'block';
+    document.getElementById('gate-btn').textContent = userList.length===0 ? 'Create login' : 'Add login';
+  } else {
+    document.getElementById('gate-eyebrow').textContent = 'Sign in';
+    document.getElementById('gate-title').textContent = 'Million Homes Ledger';
+    document.getElementById('gate-sub').textContent = 'Enter your name and passcode to open the ledger.';
+    document.getElementById('gate-confirm-wrap').style.display = 'none';
+    document.getElementById('gate-btn').textContent = 'Sign in';
+  }
+  renderGateSwitchLabel();
+  renderUserList();
+}
+
+document.getElementById('gate-btn').addEventListener('click', async ()=>{
+  const name = document.getElementById('gate-name').value.trim();
+  const pass = document.getElementById('gate-pass').value;
+  const errEl = document.getElementById('gate-error');
+  errEl.style.display = 'none';
+  if(!name || !pass){ errEl.textContent = 'Enter both name and passcode.'; errEl.style.display='block'; return; }
+
+  if(gateMode === 'create'){
+    if(userList.length >= MAX_USERS){ errEl.textContent = 'Maximum of 4 logins reached.'; errEl.style.display='block'; return; }
+    if(userList.some(u=>u.name.toLowerCase()===name.toLowerCase())){ errEl.textContent = 'That name is already used — pick another.'; errEl.style.display='block'; return; }
+    const pass2 = document.getElementById('gate-pass2').value;
+    if(pass !== pass2){ errEl.textContent = 'Passcodes do not match.'; errEl.style.display='block'; return; }
+    userList.push({name, pass});
+    await saveUsers(userList);
+    enterApp(name);
+  } else {
+    const match = userList.find(u=>u.name.toLowerCase()===name.toLowerCase() && u.pass===pass);
+    if(match){
+      enterApp(match.name);
+    } else {
+      errEl.textContent = 'Name or passcode is incorrect.';
+      errEl.style.display = 'block';
+    }
+  }
+});
+
+document.getElementById('gate-switch').addEventListener('click', ()=>{
+  if(gateMode === 'signin'){
+    if(userList.length >= MAX_USERS) return;
+    document.getElementById('gate-name').value='';
+    document.getElementById('gate-pass').value='';
+    initGate('create');
+  } else {
+    document.getElementById('gate-name').value='';
+    document.getElementById('gate-pass').value='';
+    initGate('signin');
+  }
+});
+
+function enterApp(name){
+  currentUser = name;
+  document.getElementById('gate').style.display='none';
+  document.getElementById('shell').style.display='flex';
+  document.getElementById('sidebar-user').textContent = name;
+  loadDeals();
+}
+
+document.getElementById('btn-lock').addEventListener('click', ()=>{
+  currentUser = null;
+  document.getElementById('shell').style.display='none';
+  document.getElementById('gate').style.display='block';
+  document.getElementById('gate-name').value='';
+  document.getElementById('gate-pass').value='';
+  initGate('signin');
+});
+
+/* ---------------- NAV ---------------- */
+document.querySelectorAll('.mh-nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.mh-nav-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    const v = item.dataset.view;
+    document.querySelectorAll('.mh-view').forEach(el=>el.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+    if(v==='reports') renderReports();
+    if(v==='dashboard') render();
+  });
+});
+
+document.querySelectorAll('.mh-report-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.mh-report-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.mh-report-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('report-'+tab.dataset.report).classList.add('active');
+  });
+});
+
+/* ---------------- CALC ---------------- */
+function calc(d){
+  const contract = Number(d.contractValue)||0;
+  const commPct = Number(d.commissionPct)||0;
+  const base = contract * commPct;
+  const vat = base * 0.05;
+  const totalCommission = base + vat;
+  const kbAgents = Number(d.kickbackAgents)||0;
+  const kbClient = Number(d.kickbackClient)||0;
+  const compAgentsShare = base - kbAgents - kbClient;
+  const agents = [
+    {name:d.agent1Name, pct:Number(d.agent1Pct)||0},
+    {name:d.agent2Name, pct:Number(d.agent2Pct)||0},
+    {name:d.agent3Name, pct:Number(d.agent3Pct)||0}
+  ].filter(a => a.name || a.pct);
+  const agentComms = agents.map(a => ({...a, comm: compAgentsShare * a.pct}));
+  const totalAgentComm = agentComms.reduce((s,a)=>s+a.comm,0);
+  const companyComm = compAgentsShare - totalAgentComm;
+  const deductions = Number(d.deductions)||0;
+  const additionalPayment = Number(d.additionalPayment)||0;
+  const netAgentPayable = totalAgentComm - deductions + additionalPayment;
+  const receivedAmount = Number(d.receivedAmount)||0;
+  const outstanding = totalCommission - receivedAmount;
+  const paidToAgentAmount = Number(d.paidToAgentAmount)||0;
+  const agentBalanceDue = netAgentPayable - paidToAgentAmount;
+  return {base, vat, totalCommission, compAgentsShare, agentComms, totalAgentComm, companyComm, netAgentPayable, receivedAmount, outstanding, agentBalanceDue};
+}
+
+/* ---------------- STORAGE ---------------- */
+const SEED_DEALS = [{"id": "seed1", "dealDate": "2026-01-22", "projectType": "Primary Offplan", "project": "Ying Zhang - Muheira Modon", "unitNo": "B1-207", "company": "MH", "contractValue": 1783629.0, "commissionPct": 0.04, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Jenny", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Bank Transfer", "remarks": "Team: Chinese | Commission Received (paid to agent ) | Inv#: INV.0258", "receivedDate": "04/16/2026", "receivedAmount": 74912.42, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed2", "dealDate": "2026-01-22", "projectType": "RENTAL", "project": "Al Ayadi Al Baydaa Facil - Smark 4", "unitNo": "STAFF ACCOMODATION", "company": "MH", "contractValue": 1750000.0, "commissionPct": 0.02381, "kickbackAgents": 0.0, "kickbackClient": 0.0, "agent1Name": "Muhammad Ali", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Cheque", "remarks": "Team: International | Commission received & Paid to Agent | Inv#: INV.0230", "receivedDate": "01/23/2026", "receivedAmount": 43750.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": 33333.0, "paidToAgentDate": "01/31/2026", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed3", "dealDate": "2026-01-28", "projectType": "RENTAL", "project": "Lei Wong - Olivz Residence Block", "unitNo": "611", "company": "MH", "contractValue": 45000.0, "commissionPct": 0.02645, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Eason", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Cash", "remarks": "Team: Chinese | Commission received & Paid to Agent | Inv#: INV.0231", "receivedDate": "01/28/2026", "receivedAmount": 1250.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": 952.0, "paidToAgentDate": "01/31/2026", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed4", "dealDate": "2026-01-28", "projectType": "Buy Sell", "project": "Kaki Tam - Lagoons", "unitNo": "301", "company": "MH", "contractValue": 2260000.0, "commissionPct": 0.008428, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Zoe", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Cash", "remarks": "Team: Chinese | Commission received & Paid to Agent | Inv#: INV.0233", "receivedDate": "01/28/2026", "receivedAmount": 20000.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": 15238.0, "paidToAgentDate": "01/31/2026", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed5", "dealDate": "2026-01-28", "projectType": "Primary Offplan", "project": "Shen Zhen Co - La perla - BNW", "unitNo": "301", "company": "SZ", "contractValue": 1915976.0, "commissionPct": 0.07, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Alina (Shenzen)", "agent1Pct": 0.7, "agent2Name": "", "agent2Pct": 0.1, "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Cash", "remarks": "Team: Shenzen | Not paid (not Received) offplan- follow-up with agent : Upon receipt of commission credit Shenzen Investment account the appropriate amount. | Inv#: INV.0242", "receivedDate": "04 May 2026 & 03 June 2026", "receivedAmount": 140824.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed6", "dealDate": "2026-01-28", "projectType": "Primary Offplan", "project": "Gopa kumar - Forest City Tower 2", "unitNo": "302", "company": "MH", "contractValue": 628888.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": 29872.18, "agent1Name": "Leo", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Chinese | Commission Received (paid to agent ) | Inv#: INV.0246", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed7", "dealDate": "2026-01-29", "projectType": "Buy Sell", "project": "Hamed Toghi pour - VOLARE", "unitNo": "523", "company": "MH", "contractValue": 900000.0, "commissionPct": 0.019048, "kickbackAgents": 0.0, "kickbackClient": 0.0, "agent1Name": "MOH", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Commission received & Paid to Agent | Inv#: INV.0235", "receivedDate": "01/29/2026", "receivedAmount": 18000.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": 13714.0, "paidToAgentDate": "01/31/2026", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed8", "dealDate": "2026-02-02", "projectType": "RENTAL", "project": "Sunlight Gents Salon license - Citadel tower", "unitNo": "1402", "company": "MH", "contractValue": 199500.0, "commissionPct": 0.1, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Hassan", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Cheque", "remarks": "Team: Chinese | Commission Received (paid to agent ) | Inv#: INV.0238", "receivedDate": "02/03/2026", "receivedAmount": 20947.0, "deductions": 5000.0, "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed9", "dealDate": "2026-02-03", "projectType": "Primary Offplan", "project": "Yanping Song - Aura", "unitNo": "418", "company": "MH", "contractValue": 420132.45, "commissionPct": 0.055, "kickbackAgents": 5000.0, "kickbackClient": "", "agent1Name": "Katrina", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Chinese | Commission Received (paid to agent ) | Inv#: INV.0236", "receivedDate": "02/07/2026", "receivedAmount": 24262.65, "deductions": 10000.0, "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed10", "dealDate": "2026-02-03", "projectType": "RENTAL", "project": "HVIP -jone", "unitNo": "901A", "company": "MH", "contractValue": 75000.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Katrina", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Homes VIP", "remarks": "Team: Chinese | Commission Received (paid to agent ) | Inv#: INV.0244", "receivedDate": "02/18/2026", "receivedAmount": 3937.5, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed11", "dealDate": "2026-02-04", "projectType": "RENTAL", "project": "Damac Hills - Zuo Kai Zhong", "unitNo": "271", "company": "MH", "contractValue": 100000.0, "commissionPct": 0.01714, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Eason", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Commission Received (paid to agent ) | Inv#: INV.0237", "receivedDate": "02/03/2026", "receivedAmount": 1800.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed12", "dealDate": "2026-02-04", "projectType": "Buy Sell", "project": "RNG Management Consultancies LLc - Aspect Tower", "unitNo": "2303", "company": "MH", "contractValue": 2600000.0, "commissionPct": 0.007326, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Suhua Wang", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Commission Received (paid to agent ) | Inv#: INV.0239", "receivedDate": "02/04/2026", "receivedAmount": 20000.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed13", "dealDate": "2026-02-04", "projectType": "Primary Offplan", "project": "Yiting  Zheng - One Residence", "unitNo": "2102", "company": "MH", "contractValue": 2450000.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": 61250.0, "agent1Name": "Suhua Wang", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Chinese | Not paid (not Received) Offplan - follow-up with agent | Inv#: INV.0271", "receivedDate": "", "receivedAmount": "", "deductions": 3319.0, "additionalPayment": "", "paidToAgentAmount": 62520.84, "paidToAgentDate": "07/072026", "paidToClientAmount": "", "paidToClientDate": "", "status": "Partially Paid"}, {"id": "seed14", "dealDate": "2026-02-04", "projectType": "Primary Offplan", "project": "Tian Xiang Xia - One Residence", "unitNo": "2207", "company": "MH", "contractValue": 2501980.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": 100079.36, "agent1Name": "Suhua Wang", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Chinese | Not paid (not Received) Offplan - follow-up with agent | Inv#: INV.0264", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": 120095.23, "paidToAgentDate": "07/07/2026", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed15", "dealDate": "2026-02-06", "projectType": "RENTAL", "project": "CItadel Tower", "unitNo": "203", "company": "MH", "contractValue": 135000.0, "commissionPct": 0.1, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Zohaib Farooq", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Bank Transfer", "remarks": "Team: International | commission received (paid to agent) : Additional 178 was rcvd for eJARI  AS AGENT PAID  - SO PAY BACK TO AGENT | Inv#: INV.0240", "receivedDate": "02/05/2026", "receivedAmount": 14353.0, "deductions": "", "additionalPayment": 178.0, "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed16", "dealDate": "2026-02-09", "projectType": "Primary Offplan", "project": "Azizi Venice - Borz's Salomoni", "unitNo": "1018", "company": "MH", "contractValue": 1193100.0, "commissionPct": 0.07, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Bonu / MOH /Leo", "agent1Pct": 0.6, "agent2Name": "", "agent2Pct": 0.05, "agent3Name": "", "agent3Pct": 0.05, "modeOfPayment": "", "remarks": "Team: Chinese | Not paid (not Received) Offplan - follow-up with agent   MOH will get 5% 4305 | Inv#: INV.0248", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Future Payment"}, {"id": "seed17", "dealDate": "2026-02-11", "projectType": "Primary Offplan", "project": "One Development / One Residence", "unitNo": "2406", "company": "MH", "contractValue": 2500000.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": 62500.0, "agent1Name": "Sarah/Leo/*MeiZhao", "agent1Pct": 0.4, "agent2Name": "", "agent2Pct": 0.4, "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Chinese | Not paid (not Received) Offplan - follow-up with agent  - special case | Inv#: INV.0270", "receivedDate": "", "receivedAmount": "", "deductions": 33675.0, "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Received - Not Paid"}, {"id": "seed18", "dealDate": "2026-02-13", "projectType": "Primary Offplan", "project": "One By Binghatti", "unitNo": "2908", "company": "SZ", "contractValue": 2275000.0, "commissionPct": 0.06, "kickbackAgents": "", "kickbackClient": 91000.0, "agent1Name": "Xianchen/leo", "agent1Pct": 0.7, "agent2Name": "", "agent2Pct": 0.1, "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Shenzen | Not paid (not Received) Offplan - follow-up with agent  - special case", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Pending Receipt"}, {"id": "seed19", "dealDate": "2026-02-13", "projectType": "Primary Offplan", "project": "May Bach Ultimate Luxury - Binghatti", "unitNo": "1401", "company": "MH", "contractValue": 2250000.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Imam/MOH/Leo", "agent1Pct": 0.7, "agent2Name": "", "agent2Pct": 0.05, "agent3Name": "", "agent3Pct": 0.05, "modeOfPayment": "BANK TRANSFER", "remarks": "Team: Chinese | Commission Received (paid to agent ) | Inv#: INV.0245", "receivedDate": "04/22/2026", "receivedAmount": 118125.0, "deductions": 10800.0, "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed20", "dealDate": "2026-02-18", "projectType": "Primary Offplan", "project": "Azizi Venice - Mukhridin Davlator", "unitNo": "310", "company": "MH", "contractValue": 777150.0, "commissionPct": 0.07, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Jovid/MOH", "agent1Pct": 0.7, "agent2Name": "", "agent2Pct": 0.05, "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Chinese | Not paid (not Received) Offplan - follow-up with agent  / BILLED | Inv#: INV.0251", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Future Payment"}, {"id": "seed21", "dealDate": "2026-02-18", "projectType": "Primary Offplan", "project": "Danubz Diamondz - Lian Wei pei", "unitNo": "", "company": "SZ", "contractValue": 1308530.0, "commissionPct": 0.08, "kickbackAgents": "", "kickbackClient": 52341.0, "agent1Name": "Xianchen/leo/client", "agent1Pct": 0.7, "agent2Name": "", "agent2Pct": 0.1, "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Shenzen | Not paid (not Received) Offplan - follow-up with agent", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Pending Receipt"}, {"id": "seed22", "dealDate": "2026-02-18", "projectType": "Primary Offplan", "project": "Object 1 - Aila Residence - Yuman Shi", "unitNo": "705", "company": "MH", "contractValue": 1861477.0, "commissionPct": 0.05, "kickbackAgents": 88420.0, "kickbackClient": "", "agent1Name": "Chris/Leo", "agent1Pct": 0.2, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Chinese | Not paid (not Received) Offplan - follow-up with agent", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Cancelled"}, {"id": "seed23", "dealDate": "2026-02-18", "projectType": "Primary Offplan", "project": "Modon Muheria - Sofia", "unitNo": "B1-1101 & B1-1111", "company": "MH", "contractValue": 28751543.6, "commissionPct": 0.04, "kickbackAgents": 1092558.65, "kickbackClient": "", "agent1Name": "Sofia/Leo", "agent1Pct": 0.3, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: Chinese | Not paid (not Received) Offplan - follow-up with agent | Inv#: INV.0267", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Pending Receipt"}, {"id": "seed24", "dealDate": "2026-02-24", "projectType": "Buy Sell", "project": "Iris Bay - Zehra Ebrahim", "unitNo": "804", "company": "MH", "contractValue": 2350000.0, "commissionPct": 0.008105, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Zohaib Farooq", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "", "remarks": "Team: International | Not paid (not Received) Buysell  - follow-up with agent", "receivedDate": "", "receivedAmount": "", "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Pending Receipt"}, {"id": "seed25", "dealDate": "2026-04-01", "projectType": "RENTAL", "project": "Binghatti Lavender - Han Zhao", "unitNo": "901", "company": "MH", "contractValue": 52000.0, "commissionPct": 0.057692, "kickbackAgents": 1000.0, "kickbackClient": "", "agent1Name": "Ali Muqaddas", "agent1Pct": 0.5, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: International | commission received (paid to agent) | Inv#: INV 0257", "receivedDate": "04/01/2026", "receivedAmount": 3150.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed26", "dealDate": "2026-04-16", "projectType": "RENTAL", "project": "Julian Clement Gutierrez - Lavender", "unitNo": "210", "company": "MH", "contractValue": 100000.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Shahid", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Bank Transfer", "remarks": "Team: Chinese | commission received (paid to agent in Advance) | Inv#: INV 0263", "receivedDate": "04/16/2026", "receivedAmount": 5250.0, "deductions": 4000.0, "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed27", "dealDate": "2026-04-16", "projectType": "RENTAL", "project": "Jesus sancho carrascosa - Damac Hills", "unitNo": "213", "company": "MH", "contractValue": 160000.0, "commissionPct": 0.025, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Leo", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0265", "receivedDate": "04/17/2026", "receivedAmount": 4200.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed28", "dealDate": "2026-04-24", "projectType": "Primary Offplan", "project": "Sobha City Abu DHabi", "unitNo": "B-1010", "company": "MH", "contractValue": 1390141.0, "commissionPct": 0.06, "kickbackAgents": "", "kickbackClient": 41704.0, "agent1Name": "Suhua Wang", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Bank Transfer", "remarks": "Team: Chinese | Not paid (not Received) Offplan - follow-up with agent | Inv#: INV 0268", "receivedDate": "05/25/2026", "receivedAmount": 21894.72, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Pending Receipt"}, {"id": "seed29", "dealDate": "2026-05-20", "projectType": "RENTAL", "project": "Majestique Residence 1", "unitNo": "431", "company": "MH", "contractValue": 70000.0, "commissionPct": 0.05, "kickbackAgents": 1750.0, "kickbackClient": "", "agent1Name": "Rashid", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV.0272", "receivedDate": "05/20/2026", "receivedAmount": 3675.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": 1750.0, "paidToClientDate": "", "status": "Closed"}, {"id": "seed30", "dealDate": "2026-05-22", "projectType": "RENTAL", "project": "Nakheel - China Cluster", "unitNo": "A09", "company": "MH", "contractValue": 48000.0, "commissionPct": 0.01984, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Lisa", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0279", "receivedDate": "05/22/2026", "receivedAmount": 1000.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed31", "dealDate": "2026-05-22", "projectType": "RENTAL", "project": "Nakheel - Warsan Villas", "unitNo": "A75", "company": "MH", "contractValue": 120000.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Lisa", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0275", "receivedDate": "05/25/2026", "receivedAmount": 3150.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed32", "dealDate": "2026-05-22", "projectType": "RENTAL", "project": "Emaar - Creek Harbour", "unitNo": "T-1706", "company": "MH", "contractValue": 7000.0, "commissionPct": "", "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Lisa", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0273", "receivedDate": "05/25/2026", "receivedAmount": 1500.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed33", "dealDate": "2026-05-22", "projectType": "RENTAL", "project": "Emaar - Creek Harbour (Holdiay Homes)", "unitNo": "9 unit", "company": "MH", "contractValue": 81000.0, "commissionPct": 0.05555, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Katrina", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0274", "receivedDate": "05/25/2026", "receivedAmount": 4725.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed34", "dealDate": "2026-06-02", "projectType": "Buy Sell", "project": "Global Green View 2 - Mr.wang", "unitNo": "813", "company": "MH", "contractValue": 655000.0, "commissionPct": 0.01, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Katrina", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0278", "receivedDate": "06/25/2026", "receivedAmount": 6877.5, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed35", "dealDate": "2026-06-02", "projectType": "RENTAL", "project": "Holiday Homes Rental", "unitNo": "604", "company": "MH", "contractValue": 1200.0, "commissionPct": 0.3172, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Hassan", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0280", "receivedDate": "06/04/2026", "receivedAmount": 400.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed36", "dealDate": "2026-06-13", "projectType": "RENTAL", "project": "Holiday Homes Rental", "unitNo": "3706", "company": "MH", "contractValue": 80000.0, "commissionPct": "", "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Katrina", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0281", "receivedDate": "06/16/2026", "receivedAmount": 1050.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed37", "dealDate": "2026-06-23", "projectType": "RENTAL", "project": "China Harbour Engineering LLC", "unitNo": "Land", "company": "MH", "contractValue": 215000.0, "commissionPct": 0.1, "kickbackAgents": "", "kickbackClient": 2000.0, "agent1Name": "Lisa", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Bank", "remarks": "Team: Chinese | Received (paid) Rental | Inv#: INV 0277", "receivedDate": "06/10/2026", "receivedAmount": 22575.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Closed"}, {"id": "seed38", "dealDate": "2026-06-23", "projectType": "RENTAL", "project": "Al Barsha South First - Lifan", "unitNo": "21", "company": "MH", "contractValue": 250000.0, "commissionPct": 0.05, "kickbackAgents": "", "kickbackClient": 6250.0, "agent1Name": "Lisa", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Not paid (not Received) Rental - follow-up with agent | Inv#: INV 0282", "receivedDate": "06/25/2026", "receivedAmount": 6875.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": 6250.0, "paidToClientDate": "", "status": "Closed"}, {"id": "seed39", "dealDate": "2026-06-27", "projectType": "RENTAL", "project": "Sergio De Feudis - Emaar", "unitNo": "2910 - Creek edge T1", "company": "MH", "contractValue": 140000.0, "commissionPct": 0.05, "kickbackAgents": 3500.0, "kickbackClient": "", "agent1Name": "Leo/Vicky", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "Bank", "remarks": "Team: Chinese | Received (not paid) Rental", "receivedDate": "06/27/2026", "receivedAmount": 7350.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Received - Not Paid"}, {"id": "seed40", "dealDate": "2026-07-14", "projectType": "Buy Sell", "project": "Emaar - Mangrove (Li Jing)", "unitNo": "209", "company": "MH", "contractValue": 2200000.0, "commissionPct": 0.008658, "kickbackAgents": "", "kickbackClient": "", "agent1Name": "Leo", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (not paid) Rental", "receivedDate": "07/14/2026", "receivedAmount": 20000.0, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Received - Not Paid"}, {"id": "seed41", "dealDate": "2026-07-14", "projectType": "RENTAL", "project": "Danube - Gemz by danube (sun ting)", "unitNo": "909", "company": "MH", "contractValue": 125000.0, "commissionPct": 0.0504, "kickbackAgents": 3307.5, "kickbackClient": "", "agent1Name": "Leo/Lucky (Huaxin)", "agent1Pct": 0.8, "agent2Name": "", "agent2Pct": "", "agent3Name": "", "agent3Pct": "", "modeOfPayment": "CASH", "remarks": "Team: Chinese | Received (not paid) Rental", "receivedDate": "07/14/2026", "receivedAmount": 3307.5, "deductions": "", "additionalPayment": "", "paidToAgentAmount": "", "paidToAgentDate": "", "paidToClientAmount": "", "paidToClientDate": "", "status": "Received - Not Paid"}];
+
+async function loadDeals(){
+  const stored = await storeGet(DEALS_KEY);
+  if(stored && stored.length){
+    deals = stored;
+  } else if(stored === null){
+    // Nothing saved yet in this browser/session — load the 2026 deals from your uploaded sheet
+    deals = SEED_DEALS.map(d => ({...d}));
+    await saveDeals();
+  } else {
+    deals = [];
+  }
+  showStorageWarning();
+  render();
+}
+async function saveDeals(){
+  await storeSet(DEALS_KEY, deals);
+}
+
+/* ---------------- NEW DEAL FORM ---------------- */
+function readForm(){
+  return {
+    dealDate: document.getElementById('f-date').value,
+    projectType: document.getElementById('f-type').value,
+    project: document.getElementById('f-project').value,
+    unitNo: document.getElementById('f-unit').value,
+    company: document.getElementById('f-company').value,
+    contractValue: document.getElementById('f-contract').value,
+    commissionPct: pctInput(document.getElementById('f-commpct').value),
+    kickbackAgents: document.getElementById('f-kbagent').value,
+    kickbackClient: document.getElementById('f-kbclient').value,
+    modeOfPayment: document.getElementById('f-mode').value,
+    remarks: document.getElementById('f-remarks').value,
+    agent1Name: document.getElementById('f-a1name').value,
+    agent1Pct: pctInput(document.getElementById('f-a1pct').value),
+    agent2Name: document.getElementById('f-a2name').value,
+    agent2Pct: pctInput(document.getElementById('f-a2pct').value),
+    agent3Name: document.getElementById('f-a3name').value,
+    agent3Pct: pctInput(document.getElementById('f-a3pct').value)
+  };
+}
+
+function updatePreview(){
+  const d = readForm();
+  const c = calc(d);
+  document.getElementById('preview').innerHTML = `
+    <div class="p-item"><p class="p-label">Commission excl. VAT</p><p class="p-value">${fmt(c.base)}</p></div>
+    <div class="p-item"><p class="p-label">VAT 5%</p><p class="p-value">${fmt(c.vat)}</p></div>
+    <div class="p-item"><p class="p-label">Total commission incl. VAT</p><p class="p-value">${fmt(c.totalCommission)}</p></div>
+    <div class="p-item"><p class="p-label">Company & agents share</p><p class="p-value">${fmt(c.compAgentsShare)}</p></div>
+    ${c.agentComms.map(a=>`<div class="p-item"><p class="p-label">${a.name || 'Agent'} (${(a.pct*100).toFixed(0)}%)</p><p class="p-value">${fmt(a.comm)}</p></div>`).join('')}
+    <div class="p-item"><p class="p-label">Company net commission</p><p class="p-value">${fmt(c.companyComm)}</p></div>
+  `;
+}
+['f-contract','f-commpct','f-kbagent','f-kbclient','f-a1name','f-a1pct','f-a2name','f-a2pct','f-a3name','f-a3pct'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updatePreview);
+});
+
+document.getElementById('btn-add').addEventListener('click', async ()=>{
+  const d = readForm();
+  if(!d.project || !d.contractValue){ alert('Add at least a project name and contract value.'); return; }
+  d.id = 'd' + Date.now();
+  d.status = 'Pending Receipt';
+  d.receivedDate=''; d.receivedAmount=''; d.deductions=''; d.additionalPayment='';
+  d.paidToAgentAmount=''; d.paidToAgentDate=''; d.paidToClientAmount=''; d.paidToClientDate='';
+  d.notes=''; d.createdBy = currentUser || '';
+  deals.unshift(d);
+  await saveDeals();
+  ['f-date','f-project','f-unit','f-company','f-contract','f-commpct','f-kbagent','f-kbclient','f-mode','f-remarks','f-a1name','f-a1pct','f-a2name','f-a2pct','f-a3name','f-a3pct'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  updatePreview();
+  render();
+  alert('Deal added to the ledger.');
+});
+
+document.getElementById('filter-search').addEventListener('input', render);
+document.getElementById('filter-status').addEventListener('change', render);
+document.getElementById('filter-type').addEventListener('change', render);
+
+function sealClass(status){
+  if(status === 'Closed') return 'seal-closed';
+  if(status === 'Partially Paid') return 'seal-partial';
+  if(status === 'Future Payment') return 'seal-future';
+  if(status === 'Cancelled') return 'seal-cancelled';
+  return 'seal-pending';
+}
+
+/* ---------------- RENDER: DASHBOARD + ALL DEALS ---------------- */
+function renderSummary(){
+  let totalContract=0, totalCommission=0, totalReceived=0, totalOutstanding=0, companyNet=0;
+  deals.forEach(d=>{
+    if(d.status === 'Cancelled') return;
+    const c = calc(d);
+    totalContract += Number(d.contractValue)||0;
+    totalCommission += c.totalCommission;
+    totalReceived += c.receivedAmount;
+    totalOutstanding += Math.max(c.outstanding,0);
+    companyNet += c.companyComm;
+  });
+  document.getElementById('summary').innerHTML = `
+    <div class="mh-stat"><p class="mh-stat-label">Total contract value</p><p class="mh-stat-value">${fmt(totalContract)}</p></div>
+    <div class="mh-stat"><p class="mh-stat-label">Total commission (incl. VAT)</p><p class="mh-stat-value teal">${fmt(totalCommission)}</p></div>
+    <div class="mh-stat"><p class="mh-stat-label">Received</p><p class="mh-stat-value">${fmt(totalReceived)}</p></div>
+    <div class="mh-stat"><p class="mh-stat-label">Outstanding (not received)</p><p class="mh-stat-value rose">${fmt(totalOutstanding)}</p></div>
+    <div class="mh-stat"><p class="mh-stat-label">Company net commission</p><p class="mh-stat-value gold">${fmt(companyNet)}</p></div>
+  `;
+  const recentBody = document.getElementById('recent-body');
+  const recent = [...deals].sort((a,b)=>(b.dealDate||'').localeCompare(a.dealDate||'')).slice(0,8);
+  recentBody.innerHTML = recent.length ? recent.map(d=>{
+    const c = calc(d);
+    return `<tr><td style="font-family:var(--font-mono);padding:8px;">${d.dealDate||'—'}</td><td style="padding:8px;">${d.project}</td><td style="padding:8px;font-family:var(--font-mono);">${d.projectType||''}</td><td style="padding:8px;font-family:var(--font-mono);">${fmt(c.totalCommission)}</td><td style="padding:8px;"><span class="mh-seal ${sealClass(d.status)}">${d.status}</span></td></tr>`;
+  }).join('') : `<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--ink-soft);">No deals yet.</td></tr>`;
+}
+
+function matchesFilters(d){
+  const search = document.getElementById('filter-search').value.toLowerCase();
+  const status = document.getElementById('filter-status').value;
+  const type = document.getElementById('filter-type').value;
+  if(status && d.status !== status) return false;
+  if(type && d.projectType !== type) return false;
+  if(search){
+    const hay = [d.project,d.unitNo,d.agent1Name,d.agent2Name,d.agent3Name,d.company].join(' ').toLowerCase();
+    if(!hay.includes(search)) return false;
+  }
+  return true;
+}
+
+function render(){
+  renderSummary();
+  const tbody = document.getElementById('table-body');
+  const filtered = deals.filter(matchesFilters);
+  document.getElementById('empty-state').style.display = deals.length===0 ? 'block' : 'none';
+  tbody.innerHTML = '';
+  filtered.forEach(d=>{
+    const c = calc(d);
+    const row = document.createElement('tr');
+    row.className = 'mh-row';
+    row.innerHTML = `
+      <td>${d.dealDate || '—'}</td>
+      <td class="name-cell"><span class="proj">${d.project}</span><span class="sub">${d.unitNo||''} ${d.agent1Name?('· '+[d.agent1Name,d.agent2Name,d.agent3Name].filter(Boolean).join('/')):''}</span></td>
+      <td>${d.projectType||''}</td>
+      <td>${fmt(d.contractValue)}</td>
+      <td>${fmt(c.totalCommission)}</td>
+      <td>${fmt(c.companyComm)}</td>
+      <td>${fmt(c.totalAgentComm)}</td>
+      <td><span class="mh-seal ${sealClass(d.status)}">${d.status}</span></td>
+      <td><button class="mh-btn ghost small" data-id="${d.id}">${expandedId===d.id?'Close':'Update'}</button></td>
+    `;
+    row.querySelector('button').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      expandedId = expandedId===d.id ? null : d.id;
+      render();
+    });
+    tbody.appendChild(row);
+
+    if(expandedId === d.id){
+      const dRow = document.createElement('tr');
+      dRow.className = 'mh-detail-row';
+      dRow.innerHTML = `<td colspan="9">
+        <div class="mh-breakdown">
+          <div><span>Commission excl. VAT</span><span>${fmt(c.base)}</span></div>
+          <div><span>VAT 5%</span><span>${fmt(c.vat)}</span></div>
+          <div><span>Total commission incl. VAT</span><span>${fmt(c.totalCommission)}</span></div>
+          <div><span>Kickback to agents</span><span>${fmt(d.kickbackAgents)}</span></div>
+          <div><span>Kickback to client</span><span>${fmt(d.kickbackClient)}</span></div>
+          <div><span>Company & agents share</span><span>${fmt(c.compAgentsShare)}</span></div>
+          ${c.agentComms.map(a=>`<div><span>${a.name||'Agent'} (${(a.pct*100).toFixed(0)}%)</span><span>${fmt(a.comm)}</span></div>`).join('')}
+          <div><span>Company net commission</span><span>${fmt(c.companyComm)}</span></div>
+          <div><span>Net agent payable</span><span>${fmt(c.netAgentPayable)}</span></div>
+          <div><span>Agent balance due</span><span>${fmt(c.agentBalanceDue)}</span></div>
+        </div>
+        <div class="mh-detail-grid">
+          <div class="mh-field"><label>Received date</label><input type="text" placeholder="DD/MM/YYYY" data-field="receivedDate" value="${d.receivedDate||''}"></div>
+          <div class="mh-field"><label>Received amount</label><input type="number" data-field="receivedAmount" value="${d.receivedAmount||''}"></div>
+          <div class="mh-field"><label>Deductions</label><input type="number" data-field="deductions" value="${d.deductions||''}"></div>
+          <div class="mh-field"><label>Additional payment</label><input type="number" data-field="additionalPayment" value="${d.additionalPayment||''}"></div>
+          <div class="mh-field"><label>Paid to agent amount</label><input type="number" data-field="paidToAgentAmount" value="${d.paidToAgentAmount||''}"></div>
+          <div class="mh-field"><label>Paid to agent date</label><input type="text" placeholder="DD/MM/YYYY" data-field="paidToAgentDate" value="${d.paidToAgentDate||''}"></div>
+          <div class="mh-field"><label>Paid to client/ext. agent</label><input type="number" data-field="paidToClientAmount" value="${d.paidToClientAmount||''}"></div>
+          <div class="mh-field"><label>Paid date</label><input type="text" placeholder="DD/MM/YYYY" data-field="paidToClientDate" value="${d.paidToClientDate||''}"></div>
+          <div class="mh-field">
+            <label>Status</label>
+            <select data-field="status">${['Pending Receipt','Received - Not Paid','Partially Paid','Closed','Future Payment','Cancelled'].map(s=>`<option ${d.status===s?'selected':''}>${s}</option>`).join('')}</select>
+          </div>
+          <div class="mh-field span2"><label>Remarks</label><input type="text" data-field="remarks" value="${(d.remarks||'').replace(/"/g,'&quot;')}"></div>
+          <div class="mh-field span2"><label>Notes</label><input type="text" placeholder="Any extra note about this update..." data-field="notes" value="${(d.notes||'').replace(/"/g,'&quot;')}"></div>
+        </div>
+        ${d.lastUpdatedBy ? `<p class="mh-note" style="margin-top:10px;">Last updated by <strong>${d.lastUpdatedBy}</strong>${d.lastUpdatedAt ? ' on '+new Date(d.lastUpdatedAt).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</p>` : ''}
+        <button class="mh-btn small" style="margin-top:14px;" data-save="${d.id}">Save updates</button>
+        <button class="mh-btn danger small" style="margin-top:14px;margin-left:8px;" data-delete="${d.id}">Delete deal</button>
+      </td>`;
+      tbody.appendChild(dRow);
+
+      dRow.querySelector('[data-save]').addEventListener('click', async ()=>{
+        const inputs = dRow.querySelectorAll('[data-field]');
+        const patch = {};
+        inputs.forEach(inp => patch[inp.dataset.field] = inp.value);
+        patch.lastUpdatedBy = currentUser || '';
+        patch.lastUpdatedAt = new Date().toISOString();
+        Object.assign(d, patch);
+        await saveDeals();
+        render();
+      });
+      dRow.querySelector('[data-delete]').addEventListener('click', async ()=>{
+        if(confirm('Delete this deal permanently?')){
+          deals = deals.filter(x=>x.id!==d.id);
+          expandedId = null;
+          await saveDeals();
+          render();
+        }
+      });
+    }
+  });
+}
+
+/* ---------------- REPORTS ---------------- */
+function monthKey(dateStr){
+  if(!dateStr) return 'Undated';
+  const dateParts = /^(\d{4})-(\d{2})/.exec(dateStr);
+  const dt = dateParts ? new Date(Number(dateParts[1]), Number(dateParts[2])-1, 1) : new Date(dateStr);
+  if(isNaN(dt)) return 'Undated';
+  return dt.toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+}
+
+function projectTypeGroup(projectType){
+  const normalized = (projectType || '').trim().toLowerCase();
+  if(normalized === 'primary offplan') return 'primaryOffplan';
+  if(normalized === 'buy sell') return 'buySell';
+  if(normalized === 'rental') return 'rental';
+  return 'other';
+}
+
+function reportMetric(){
+  return {deals:0, contract:0, commission:0, company:0, agents:0, received:0, outstanding:0};
+}
+
+function addDealToMetric(metric, deal, calculation){
+  metric.deals++;
+  metric.contract += Number(deal.contractValue)||0;
+  metric.commission += calculation.totalCommission;
+  metric.company += calculation.companyComm;
+  metric.agents += calculation.totalAgentComm;
+  metric.received += calculation.receivedAmount;
+  metric.outstanding += Math.max(calculation.outstanding,0);
+}
+
+function renderReports(){
+  const active = deals.filter(d=>d.status!=='Cancelled');
+
+  // Monthly
+  const monthly = {};
+  active.forEach(d=>{
+    const k = monthKey(d.dealDate);
+    const c = calc(d);
+    if(!monthly[k]) monthly[k] = {
+      totals:reportMetric(),
+      types:{primaryOffplan:reportMetric(), buySell:reportMetric(), rental:reportMetric(), other:reportMetric()},
+      sortKey:d.dealDate||''
+    };
+    addDealToMetric(monthly[k].totals, d, c);
+    addDealToMetric(monthly[k].types[projectTypeGroup(d.projectType)], d, c);
+    if((d.dealDate||'') > monthly[k].sortKey) monthly[k].sortKey = d.dealDate;
+  });
+  const monthRows = Object.entries(monthly).sort((a,b)=>b[1].sortKey.localeCompare(a[1].sortKey));
+  document.getElementById('monthly-body').innerHTML = monthRows.length ? monthRows.map(([month,data])=>{
+    const typeRows = [
+      ['Primary Offplan', data.types.primaryOffplan],
+      ['Buy Sell', data.types.buySell],
+      ['Rental', data.types.rental]
+    ];
+    if(data.types.other.deals) typeRows.push(['Other', data.types.other]);
+    const total = data.totals;
+    return `<tr class="mh-month-total"><td class="mh-month-cell" rowspan="${typeRows.length+1}">${month}</td><td class="mh-project-type-cell">Monthly total</td><td class="mh-type-count">${total.deals}</td><td>${fmt(total.contract)}</td><td>${fmt(total.commission)}</td><td>${fmt(total.company)}</td><td>${fmt(total.agents)}</td><td>${fmt(total.received)}</td><td style="color:var(--rose);">${fmt(total.outstanding)}</td></tr>` + typeRows.map(([label,value])=>`
+      <tr><td class="mh-project-type-cell">${label}</td><td class="mh-type-count">${value.deals}</td><td>${fmt(value.contract)}</td><td>${fmt(value.commission)}</td><td>${fmt(value.company)}</td><td>${fmt(value.agents)}</td><td>${fmt(value.received)}</td><td style="color:var(--rose);">${fmt(value.outstanding)}</td></tr>
+    `).join('');
+  }).join('') : `<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--ink-soft);">No deals yet.</td></tr>`;
+
+  // By project type
+  const byType = {};
+  active.forEach(d=>{
+    const k = d.projectType || 'Unspecified';
+    const c = calc(d);
+    if(!byType[k]) byType[k] = {deals:0, contract:0, commission:0, company:0, agents:0};
+    byType[k].deals++; byType[k].contract += Number(d.contractValue)||0;
+    byType[k].commission += c.totalCommission; byType[k].company += c.companyComm; byType[k].agents += c.totalAgentComm;
+  });
+  document.getElementById('type-body').innerHTML = Object.keys(byType).length ? Object.entries(byType).map(([k,v])=>`
+    <tr><td style="font-family:var(--font-sans);padding:8px;">${k}</td><td style="padding:8px;">${v.deals}</td><td style="padding:8px;">${fmt(v.contract)}</td><td style="padding:8px;">${fmt(v.commission)}</td><td style="padding:8px;">${fmt(v.company)}</td><td style="padding:8px;">${fmt(v.agents)}</td></tr>
+  `).join('') : `<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--ink-soft);">No deals yet.</td></tr>`;
+
+  // Agent-wise
+  const byAgent = {};
+  active.forEach(d=>{
+    const c = calc(d);
+    c.agentComms.forEach(a=>{
+      const name = a.name || 'Unnamed agent';
+      if(!byAgent[name]) byAgent[name] = {deals:0, commission:0};
+      byAgent[name].deals++; byAgent[name].commission += a.comm;
+    });
+  });
+  const agentRows = Object.entries(byAgent).sort((a,b)=>b[1].commission-a[1].commission);
+  document.getElementById('agent-body').innerHTML = agentRows.length ? agentRows.map(([k,v])=>`
+    <tr><td style="font-family:var(--font-sans);padding:8px;">${k}</td><td style="padding:8px;">${v.deals}</td><td style="padding:8px;">${fmt(v.commission)}</td></tr>
+  `).join('') : `<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--ink-soft);">No deals yet.</td></tr>`;
+
+  // Pending / outstanding
+  const pending = active.filter(d=>{
+    const c = calc(d);
+    return c.outstanding > 0.5 || ['Pending Receipt','Received - Not Paid','Partially Paid','Future Payment'].includes(d.status);
+  }).sort((a,b)=>(a.dealDate||'').localeCompare(b.dealDate||''));
+  document.getElementById('pending-body').innerHTML = pending.length ? pending.map(d=>{
+    const c = calc(d);
+    let days = '—';
+    if(d.dealDate){
+      const dt = new Date(d.dealDate);
+      if(!isNaN(dt)) days = Math.max(0, Math.round((Date.now()-dt.getTime())/86400000));
+    }
+    return `<tr><td style="padding:8px;">${d.dealDate||'—'}</td><td style="font-family:var(--font-sans);padding:8px;">${d.project}</td><td style="padding:8px;">${fmt(c.totalCommission)}</td><td style="padding:8px;">${fmt(c.receivedAmount)}</td><td style="padding:8px;color:var(--rose);">${fmt(c.outstanding)}</td><td style="padding:8px;"><span class="days-tag">${days}${days!=='—'?' days':''}</span></td><td style="padding:8px;"><span class="mh-seal ${sealClass(d.status)}">${d.status}</span></td></tr>`;
+  }).join('') : `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--ink-soft);">Nothing outstanding.</td></tr>`;
+}
+
+/* ---------------- STANDALONE APP DOWNLOAD ---------------- */
+function currentAppSource(){
+  const clone = document.documentElement.cloneNode(true);
+  const warning = clone.querySelector('#storage-warning');
+  if(warning) warning.remove();
+  ['summary','recent-body','table-body','monthly-body','type-body','agent-body','pending-body','preview'].forEach(id=>{
+    const element = clone.querySelector('#'+id);
+    if(element) element.innerHTML = '';
+  });
+  clone.querySelector('#gate').style.display = 'block';
+  clone.querySelector('#shell').style.display = 'none';
+  return '<!DOCTYPE html>\n' + clone.outerHTML;
+}
+
+async function downloadStandaloneApp(button){
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.textContent = 'Preparing download…';
+  try{
+    let source;
+    try{
+      const response = await fetch(window.location.href, {cache:'no-store'});
+      if(!response.ok) throw new Error('Unable to fetch app source');
+      source = await response.text();
+    }catch(e){
+      source = currentAppSource();
+    }
+    const blob = new Blob([source], {type:'text/html;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'million-homes-ledger.html';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    button.textContent = 'Downloaded';
+  }finally{
+    window.setTimeout(()=>{
+      button.disabled = false;
+      button.textContent = originalLabel;
+    }, 1400);
+  }
+}
+
+document.querySelectorAll('.js-download-app').forEach(button=>{
+  button.addEventListener('click', ()=>downloadStandaloneApp(button));
+});
+
+/* ---------------- CSV EXPORT ---------------- */
+document.getElementById('btn-export-csv').addEventListener('click', ()=>{
+  const headers = ['Deal Date','Project Type','Project','Unit No','Company','Agent1','Agent1 %','Agent2','Agent2 %','Agent3','Agent3 %',
+    'Contract Value','Commission %','Commission Excl VAT','VAT 5%','Total Commission','Kickback Agents','Kickback Client',
+    'Company Agents Share','Agent1 Comm','Agent2 Comm','Agent3 Comm','Company Net Commission','Net Agent Payable',
+    'Received Date','Received Amount','Outstanding','Deductions','Additional Payment','Paid To Agent Amount','Paid To Agent Date',
+    'Paid To Client Amount','Paid To Client Date','Status','Mode Of Payment','Remarks','Notes','Created By','Last Updated By','Last Updated At'];
+  const rows = deals.map(d=>{
+    const c = calc(d);
+    const ag = [0,1,2].map(i=>c.agentComms[i] ? c.agentComms[i].comm : '');
+    return [d.dealDate,d.projectType,d.project,d.unitNo,d.company,d.agent1Name,(Number(d.agent1Pct)||0)*100,d.agent2Name,(Number(d.agent2Pct)||0)*100,d.agent3Name,(Number(d.agent3Pct)||0)*100,
+      d.contractValue,(Number(d.commissionPct)||0)*100,c.base.toFixed(2),c.vat.toFixed(2),c.totalCommission.toFixed(2),d.kickbackAgents,d.kickbackClient,
+      c.compAgentsShare.toFixed(2),ag[0],ag[1],ag[2],c.companyComm.toFixed(2),c.netAgentPayable.toFixed(2),
+      d.receivedDate,d.receivedAmount,c.outstanding.toFixed(2),d.deductions,d.additionalPayment,d.paidToAgentAmount,d.paidToAgentDate,
+      d.paidToClientAmount,d.paidToClientDate,d.status,d.modeOfPayment,(d.remarks||'').replace(/"/g,'""'),(d.notes||'').replace(/"/g,'""'),
+      d.createdBy||'',d.lastUpdatedBy||'',d.lastUpdatedAt||''];
+  });
+  const csv = [headers.join(','), ...rows.map(r=>r.map(v=>`"${v!==undefined&&v!==null?v:''}"`).join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'million_homes_ledger_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+/* ---------------- INIT ---------------- */
+initGate();
+</script>
+</body>
+</html>
